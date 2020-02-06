@@ -120,18 +120,20 @@ module.exports = async ({
   }).listen(parseInt(port, 10));
 
   // Notify livereload clients on file change
+  const doReload = () => {
+    while (clients.length > 0)
+      sendMessage(clients.pop(), 'message', 'reload');
+  }
 
   reload &&
-    fs.watch(root, { recursive: true }, () => {
-      while (clients.length > 0)
-        sendMessage(clients.pop(), 'message', 'reload');
-    });
+    fs.watch(root, { recursive: true }, () => doReload());
 
   return {
     url: `${protocol}://localhost:${port}`,
     root,
     protocol,
     port,
-    ips
+    ips,
+    reload: doReload,
   };
 };

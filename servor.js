@@ -91,7 +91,7 @@ module.exports = async ({
 
   server((req, res) => {
     const pathname = url.parse(req.url).pathname;
-    if (reload && pathname === '/livereload') {
+    if (pathname === '/livereload') {
       res.writeHead(200, {
         Connection: 'keep-alive',
         'Content-Type': 'text/event-stream',
@@ -103,6 +103,7 @@ module.exports = async ({
       clients.push(res);
     } else {
       const isRoute = isRouteRequest(pathname);
+      const isHtml = pathname.endsWith('.html')
       const status = isRoute && pathname !== '/' ? 301 : 200;
       const resource = isRoute ? `/${fallback}` : decodeURI(pathname);
       const uri = path.join(root, resource);
@@ -112,7 +113,7 @@ module.exports = async ({
         fs.readFile(uri, 'binary', (err, file) => {
           if (err) return sendError(res, resource, 500);
           if (isRoute && inject) file = inject + file;
-          if (isRoute && reload) file = livereload + file;
+          if (isRoute || isHtml) file = livereload + file;
           sendFile(res, resource, status, file, ext);
         });
       });
